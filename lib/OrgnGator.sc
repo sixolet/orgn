@@ -49,11 +49,11 @@ OrgnGator {
     localdict { arg id, name;
         if(local[id].isNil, { local.put(id, Dictionary.new) });
         if(local[id][name].isNil, {
-            local[id].put(name, Dictionary.new);
+            //local[id].put(name, Dictionary.new);
 
             controlNames.do({ arg c;
                 var v = c.defaultValue, n = c.name;
-                if(n == name, { local[id].put(n, this.makebus(v)) });
+                if(n == name, { local[id].put(name, this.makebus(v)) });
             });
         })
     }
@@ -93,23 +93,27 @@ OrgnGator {
 
             local[id][name].setnSynchronous(vals);
             if((name == \gate) && (vals[0] > 0), {
-                var init = this.getAll(id);
-                var x = Synth.new(synthDef.name, init.getPairs ++ constants, target, addAction).register;
+                /*var init = this.getAll(id);
+                var x = Synth.new(synthDef.name, init.getPairs ++ constants, target, addAction).register;*/
 
-                if(voice[id].isPlaying, {
-                    var killbus = Bus.control(server, 1).set(-1.1);
-                    voice[id].map(\gate,  killbus);
-                    voice[id].onFree({ killbus.free; });
-                });
-                all.keys.do({ arg name;
-                    var bus = all[name];
-                    if(local[id].notNil, {
-                        if(local[id][name].notNil, { bus = local[id][name]; });
+                if(voice[id].isPlaying.not, {
+                    var init = this.getAll(id);
+                    var x = Synth.new(
+                        synthDef.name, init.getPairs ++ constants, target, addAction
+                    ).register;
+
+                    all.keys.do({ arg name;
+                        var bus = all[name];
+
+                        [name, local[id][name].notNil].postln;
+                        if(local[id].notNil, {
+                            if(local[id][name].notNil, { bus = local[id][name]; });
+                        });
+                        x.map(name, bus);
                     });
-                    x.map(name, bus);
-                });
 
-                voice.put(id, x);
+                    voice.put(id, x);
+                });
             });
         });
     }
@@ -133,11 +137,11 @@ OrgnGator {
         voice.do({ arg v;
             v.free;
         });
-        
+
         all.do({ arg v;
             v.free;
         });
-        
+
         local.do({ arg v;
             v.do({ arg w;
                 w.free;
